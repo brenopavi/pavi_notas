@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bem-vindo | PAVI Notas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #eef5ff;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --primary: #2563eb;
+      --primary-soft: #dbeafe;
+      --border: #dbe6ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, #e0edff 0, #eef5ff 45%, #e5f0ff 100%);
+      padding: 24px;
+      color: var(--text);
+    }
+
+    .card {
+      width: 100%;
+      max-width: 460px;
+      background: var(--card);
+      border-radius: 20px;
+      padding: 26px 22px 22px;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+      border: 1px solid var(--border);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top left, rgba(59,130,246,0.12), transparent 60%);
+      pointer-events: none;
+    }
+
+    .logo {
+      position: relative;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .logo-circle {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: conic-gradient(from 220deg, #2563eb, #38bdf8, #4f46e5, #2563eb);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 25px rgba(37,99,235,0.55);
+    }
+
+    .logo-inner {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #f9fbff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 22px;
+      color: #2563eb;
+      letter-spacing: 0.06em;
+    }
+
+    h1 {
+      position: relative;
+      margin: 10px 0 4px;
+      font-size: 22px;
+      font-weight: 700;
+      color: #1d3b8f;
+    }
+
+    .subtitle {
+      position: relative;
+      margin: 0 0 16px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .pill {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #ecf3ff;
+      border: 1px solid #d0e2ff;
+      font-size: 11px;
+      color: #1d4ed8;
+      margin-bottom: 16px;
+    }
+
+    .pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 5px rgba(34,197,94,0.25);
+    }
+
+    .message {
+      position: relative;
+      background: var(--primary-soft);
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-size: 13px;
+      text-align: left;
+      color: #1e3a8a;
+      border: 1px dashed #bfdbfe;
+      margin-bottom: 16px;
+    }
+
+    .message strong {
+      font-weight: 600;
+    }
+
+    .timer-text {
+      position: relative;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .progress-wrapper {
+      position: relative;
+      width: 100%;
+      height: 7px;
+      border-radius: 999px;
+      background: #e5edff;
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+
+    .progress-bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0%;
+      background: linear-gradient(90deg, #2563eb, #4f46e5);
+      transition: width 0.2s linear;
+    }
+
+    .mini-link {
+      position: relative;
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .mini-link a {
+      color: #1d4ed8;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .mini-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="logo">
+      <div class="logo-circle">
+        <div class="logo-inner">PN</div>
+      </div>
+    </div>
+
+    <h1>Bem-vindo ao PAVI Notas</h1>
+    <p class="subtitle">Central de envio de notas e despesas da operação.</p>
+
+    <div class="pill">
+      <span class="pill-dot"></span>
+      Preparando o ambiente seguro...
+    </div>
+
+    <div class="message">
+      <strong>Boas-vindas!</strong><br>
+      Em instantes você será direcionado para a tela de login para acessar o sistema.
+    </div>
+
+    <p class="timer-text">
+      Você será redirecionado para o <strong>login</strong> em
+      <span id="seconds">6</span> segundos.
+    </p>
+
+    <div class="progress-wrapper">
+      <div class="progress-bar" id="progress"></div>
+    </div>
+
+    <p class="mini-link">
+      Se nada acontecer, <a href="login.html">clique aqui para ir ao login</a>.
+    </p>
+  </main>
+
+  <script>
+    (function () {
+      const totalMs = 6000; // 6 segundos
+      const intervalMs = 100; // atualização da barra
+      const secondsSpan = document.getElementById('seconds');
+      const progressBar = document.getElementById('progress');
+
+      let elapsed = 0;
+
+      const interval = setInterval(() => {
+        elapsed += intervalMs;
+        const remaining = Math.ceil((totalMs - elapsed) / 1000);
+        const pct = Math.min((elapsed / totalMs) * 100, 100);
+
+        if (secondsSpan) {
+          secondsSpan.textContent = remaining >= 0 ? remaining : 0;
+        }
+        if (progressBar) {
+          progressBar.style.width = pct + '%';
+        }
+
+        if (elapsed >= totalMs) {
+          clearInterval(interval);
+        }
+      }, intervalMs);
+
+      // Redireciona em 6 segundos
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, totalMs);
+    })();
+  </script>
+</body>
+</html>
