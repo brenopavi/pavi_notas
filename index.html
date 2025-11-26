@@ -59,29 +59,11 @@
       justify-content: center;
     }
 
-    .logo-circle {
-      width: 72px;
-      height: 72px;
-      border-radius: 50%;
-      background: conic-gradient(from 220deg, #2563eb, #38bdf8, #4f46e5, #2563eb);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 10px 25px rgba(37,99,235,0.55);
-    }
-
-    .logo-inner {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: #f9fbff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 22px;
-      color: #2563eb;
-      letter-spacing: 0.06em;
+    .logo img {
+      max-width: 260px;   /* ajuste de tamanho da logo */
+      width: 100%;
+      height: auto;
+      display: block;
     }
 
     h1 {
@@ -185,9 +167,8 @@
 <body>
   <main class="card">
     <div class="logo">
-      <div class="logo-circle">
-        <div class="logo-inner">PN</div>
-      </div>
+      <!-- nova logo -->
+      <img src="NOTAS.png" alt="Pavi Serviços Ambientais - Notas" />
     </div>
 
     <h1>Bem-vindo ao PAVI Notas</h1>
