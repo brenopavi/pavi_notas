@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Despesas</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      margin: 8px 0 4px;
+      font-weight: bold;
+    }
+
+    select,
+    input[type="text"],
+    input[type="number"],
+    textarea {
+      width: 100%;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      box-sizing: border-box;
+      margin-bottom: 12px;
+    }
+
+    .icon-area {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .icon-btn {
+      flex: 1;
+      text-align: center;
+      padding: 10px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      user-select: none;
+      font-size: 14px;
+      background: #fafafa;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+
+    .icon-btn span {
+      display: block;
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+
+    .icon-btn:hover {
+      background: #f0f0f0;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+
+    .btn-enviar {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      background: #1a75ff;
+      color: #fff;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 16px;
+    }
+
+    .btn-enviar:hover {
+      background: #1554c0;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: #666;
+      margin-top: -6px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Lançar Despesas</h2>
+
+    <!-- Seleção de categoria -->
+    <label for="categoria">Categoria</label>
+    <select id="categoria" name="categoria">
+      <option value="">Selecione...</option>
+      <option value="ALIMENTACAO">ALIMENTAÇÃO</option>
+      <option value="TRANSPORTE">TRANSPORTE</option>
+      <option value="HOSPEDAGEM">HOSPEDAGEM</option>
+      <option value="OUTROS">OUTROS</option>
+    </select>
+
+    <!-- Campo que aparece somente se for selecionado OUTROS -->
+    <div id="outros-container" style="display: none;">
+      <label for="outros-tipo">Que tipo?</label>
+      <input
+        type="text"
+        id="outros-tipo"
+        name="outros_tipo"
+        placeholder="Ex: Combustível, pedágio, etc."
+      />
+    </div>
+
+    <!-- Valor da despesa -->
+    <label for="valor">Valor (R$)</label>
+    <input
+      type="number"
+      id="valor"
+      name="valor"
+      step="0.01"
+      min="0"
+      placeholder="Ex: 123,45"
+    />
+    <div class="hint">Use ponto ou vírgula, como preferir (será gravado como texto).</div>
+
+    <!-- Comentário obrigatório -->
+    <label for="comentario">Comentário</label>
+    <textarea
+      id="comentario"
+      name="comentario"
+      rows="3"
+      placeholder="Descreva a despesa..."
+    ></textarea>
+
+    <!-- Ícones de upload e câmera -->
+    <div class="icon-area">
+      <!-- Inputs reais (escondidos) -->
+      <input
+        type="file"
+        id="upload-arquivo"
+        style="display:none;"
+        accept="image/*,application/pdf"
+      />
+
+      <input
+        type="file"
+        id="upload-camera"
+        style="display:none;"
+        accept="image/*"
+        capture="environment"
+      />
+
+      <!-- Se quiser habilitar upload de arquivo, é só descomentar o label abaixo
+      <label for="upload-arquivo" class="icon-btn" id="label-upload">
+        <span>📁</span>
+        Arquivo
+      </label>
+      -->
+
+      <label for="upload-camera" class="icon-btn" id="label-camera">
+        <span>📷</span>
+        Câmera
+      </label>
+    </div>
+
+    <!-- Botão de envio -->
+    <button type="button" class="btn-enviar" id="btn-enviar">Enviar despesa</button>
+  </div>
+
+  <script>
+    const categoriaSelect = document.getElementById('categoria');
+    const outrosContainer = document.getElementById('outros-container');
+    const outrosInput = document.getElementById('outros-tipo');
+    const comentarioInput = document.getElementById('comentario');
+    const valorInput = document.getElementById('valor');
+
+    const labelUpload = document.getElementById('label-upload');
+    const labelCamera = document.getElementById('label-camera');
+    const btnEnviar = document.getElementById('btn-enviar');
+
+    // URL do mesmo WebApp usado no login/primeiro acesso
+    const WEBAPP_URL =
+      'https://script.google.com/macros/s/AKfycbwirEjPTm2sa6OtIQ89KfvYBtDU-cpG7Opqve-tBoFseQvL0ReP_4gHe74VXeHP1r53zg/exec';
+
+    // Mostra/esconde o campo OUTROS
+    categoriaSelect.addEventListener('change', function () {
+      if (this.value === 'OUTROS') {
+        outrosContainer.style.display = 'block';
+      } else {
+        outrosContainer.style.display = 'none';
+        outrosInput.value = '';
+      }
+    });
+
+    // Função de validação (categoria + comentário) - usada para câmera/upload
+    function validarCategoria() {
+      const categoria = categoriaSelect.value;
+      const comentario = comentarioInput.value.trim();
+
+      if (!categoria) {
+        alert('Selecione uma categoria antes de anexar um arquivo ou tirar uma foto.');
+        return false;
+      }
+
+      if (categoria === 'OUTROS') {
+        const textoOutros = outrosInput.value.trim();
+        if (!textoOutros) {
+          alert('Descreva o tipo de despesa em "OUTROS" antes de anexar um arquivo ou tirar uma foto.');
+          outrosInput.focus();
+          return false;
+        }
+      }
+
+      if (!comentario) {
+        alert('Digite um comentário sobre a despesa antes de anexar um arquivo ou tirar uma foto.');
+        comentarioInput.focus();
+        return false;
+      }
+
+      return true;
+    }
+
+    // Validação completa para envio (inclui valor)
+    function validarParaEnvio() {
+      if (!validarCategoria()) return false;
+
+      const valor = valorInput.value.trim();
+      if (!valor) {
+        alert('Informe o valor da despesa.');
+        valorInput.focus();
+        return false;
+      }
+
+      return true;
+    }
+
+    // Intercepta o clique no label de upload (se existir)
+    if (labelUpload) {
+      labelUpload.addEventListener('click', (e) => {
+        if (!validarCategoria()) {
+          e.preventDefault(); // impede abrir o seletor de arquivos
+        }
+      });
+    }
+
+    // Intercepta o clique no label de câmera
+    labelCamera.addEventListener('click', (e) => {
+      if (!validarCategoria()) {
+        e.preventDefault(); // impede abrir a câmera/galeria
+      }
+    });
+
+    // Envio da despesa para o Apps Script
+    btnEnviar.addEventListener('click', async () => {
+      if (!validarParaEnvio()) return;
+
+      // Tenta pegar usuário do localStorage (preenchido depois do login)
+      const usuarioLocal =
+        localStorage.getItem('pavi_notas_usuario') ||
+        localStorage.getItem('pavi_notas_email') ||
+        localStorage.getItem('pavi_notas_user') ||
+        '';
+
+      if (!usuarioLocal) {
+        alert(
+          'Não foi possível identificar o usuário logado.\n\nVolte para a tela de login e entre novamente.'
+        );
+        return;
+      }
+
+      // Monta os dados para bater com a aba BASE
+      const payload = new URLSearchParams({
+        action: 'registro',
+        usuario: usuarioLocal,
+        categoria: categoriaSelect.value,
+        tipo_outro: outrosInput.value.trim(),
+        valor: valorInput.value.trim(),
+        obs: comentarioInput.value.trim(),
+        link: '' // por enquanto não estamos salvando a nota em arquivo/Drive
+      });
+
+      btnEnviar.disabled = true;
+      btnEnviar.textContent = 'Enviando...';
+
+      try {
+        const resp = await fetch(WEBAPP_URL, {
+          method: 'POST',
+          body: payload
+        });
+
+        const text = await resp.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = null;
+        }
+
+        if (!resp.ok) {
+          throw new Error(data?.mensagem || text || 'Erro ao enviar a despesa.');
+        }
+
+        if (data && data.status === 'OK') {
+          alert(data.mensagem || 'Despesa registrada com sucesso!');
+
+          valorInput.value = '';
+          comentarioInput.value = '';
+        } else {
+          throw new Error(data?.mensagem || 'Erro ao registrar a despesa.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao enviar: ' + (err.message || err));
+      } finally {
+        btnEnviar.disabled = false;
+        btnEnviar.textContent = 'Enviar despesa';
+      }
+    });
+  </script>
+</body>
+</html>
