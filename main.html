@@ -4,10 +4,8 @@
   <meta charset="UTF-8" />
   <title>Despesas</title>
 
-  <!-- Responsivo -->
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Fonte Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 
   <style>
@@ -32,7 +30,7 @@
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      align-items: center;   /* centraliza verticalmente */
+      align-items: center;
       padding: 16px;
       color: var(--text);
     }
@@ -182,7 +180,6 @@
       }
     }
 
-    /* Caixa de mensagem */
     .status-box {
       margin-top: 12px;
       padding: 9px 10px;
@@ -270,6 +267,7 @@
         style="display:none;"
         accept="image/*,application/pdf"
       />
+
       <input
         type="file"
         id="upload-camera"
@@ -277,12 +275,14 @@
         accept="image/*"
         capture="environment"
       />
-      <!-- upload de arquivo desativado por enquanto
+
+      <!-- upload de arquivo (se quiser no futuro, é só descomentar)
       <label for="upload-arquivo" class="icon-btn" id="label-upload">
         <span>📁</span>
         Arquivo
       </label>
       -->
+
       <label for="upload-camera" class="icon-btn" id="label-camera">
         <span>📷</span>
         Câmera
@@ -291,7 +291,6 @@
 
     <button type="button" class="btn-enviar" id="btn-enviar">Enviar despesa</button>
 
-    <!-- Mensagem inline -->
     <div id="status-box" class="status-box">
       <span id="status-text"></span>
     </div>
@@ -305,6 +304,7 @@
     const valorInput = document.getElementById('valor');
     const dataNotaInput = document.getElementById('data-nota');
 
+    const fileInputCamera = document.getElementById('upload-camera');
     const labelUpload = document.getElementById('label-upload');
     const labelCamera = document.getElementById('label-camera');
     const btnEnviar = document.getElementById('btn-enviar');
@@ -312,9 +312,12 @@
     const statusBox = document.getElementById('status-box');
     const statusText = document.getElementById('status-text');
 
-    // seu WebApp atual
+    // WebApp do Apps Script
     const WEBAPP_URL =
       'https://script.google.com/macros/s/AKfycbwPOFATnK2dvqnebVgyXe1WCXrQSx6GbFLBWlSvY3RqQBHplLY6BVuN3QhVddtMPtsuoQ/exec';
+
+    // variável para guardar o link da última foto enviada
+    let ultimoLinkFoto = "";
 
     function showMessage(msg, type) {
       statusBox.style.display = 'block';
@@ -396,6 +399,79 @@
       if (!validarCategoria()) e.preventDefault();
     });
 
+    // quando o usuário tira a foto / escolhe imagem
+    fileInputCamera.addEventListener('change', async () => {
+      if (!fileInputCamera.files || !fileInputCamera.files.length) return;
+
+      if (!validarCategoria()) {
+        fileInputCamera.value = "";
+        return;
+      }
+
+      const file = fileInputCamera.files[0];
+
+      // usuário logado (mesmo usado no registro)
+      const usuarioLocal =
+        localStorage.getItem('pavi_notas_usuario') ||
+        localStorage.getItem('pavi_notas_email') ||
+        localStorage.getItem('pavi_notas_user') ||
+        '';
+
+      if (!usuarioLocal) {
+        showMessage(
+          'Não foi possível identificar o usuário logado. Volte para o login e entre novamente.',
+          'error'
+        );
+        fileInputCamera.value = "";
+        return;
+      }
+
+      if (!navigator.onLine) {
+        showMessage(
+          'Sem conexão: a foto não pode ser enviada agora. Tire a foto novamente quando estiver online.',
+          'error'
+        );
+        fileInputCamera.value = "";
+        return;
+      }
+
+      showMessage('Enviando foto...', 'info');
+
+      try {
+        const formData = new FormData();
+        formData.append('action', 'uploadFoto');
+        formData.append('usuario', usuarioLocal);
+        formData.append('arquivo', file); // nome do campo = "arquivo"
+
+        const resp = await fetch(WEBAPP_URL, {
+          method: 'POST',
+          body: formData
+        });
+
+        const text = await resp.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = null;
+        }
+
+        if (!resp.ok || !data || data.status !== 'OK') {
+          throw new Error(data?.mensagem || text || 'Erro ao enviar foto.');
+        }
+
+        ultimoLinkFoto = data.link || "";
+        showMessage('Foto anexada com sucesso!', 'success');
+      } catch (err) {
+        console.error(err);
+        showMessage('Erro ao enviar foto: ' + (err.message || err), 'error');
+        ultimoLinkFoto = "";
+      } finally {
+        // limpa o input pra permitir tirar outra foto se quiser
+        fileInputCamera.value = "";
+      }
+    });
+
     btnEnviar.addEventListener('click', async () => {
       if (!validarParaEnvio()) return;
 
@@ -423,7 +499,7 @@
         valor: valorInput.value.trim(),
         obs: comentarioInput.value.trim(),
         data_nota: dataNota,
-        link: ''
+        link: ultimoLinkFoto || ''   // vai para a coluna G
       });
 
       btnEnviar.disabled = true;
@@ -444,19 +520,20 @@
           data = null;
         }
 
-        if (!resp.ok) {
-          throw new Error(data?.mensagem || text || 'Erro ao enviar a despesa.');
+        if (!resp.ok || !data || data.status !== 'OK') {
+          throw new Error(data?.mensagem || text || 'Erro ao registrar a despesa.');
         }
 
-        if (data && data.status === 'OK') {
-          showMessage(data.mensagem || 'Despesa registrada com sucesso!', 'success');
+        showMessage(data.mensagem || 'Despesa registrada com sucesso!', 'success');
 
-          valorInput.value = '';
-          comentarioInput.value = '';
-          dataNotaInput.value = '';
-        } else {
-          throw new Error(data?.mensagem || 'Erro ao registrar a despesa.');
-        }
+        valorInput.value = '';
+        comentarioInput.value = '';
+        dataNotaInput.value = '';
+        // mantém categoria, se quiser pode limpar:
+        // categoriaSelect.value = '';
+        // outrosInput.value = '';
+        // outrosContainer.style.display = 'none';
+        ultimoLinkFoto = "";
       } catch (err) {
         console.error(err);
         showMessage('Erro ao enviar: ' + (err.message || err), 'error');
